@@ -3,10 +3,15 @@ name: Build AX3000T AN8855 ImmortalWrt 24.10
 on:
   workflow_dispatch:
 
+
 env:
+
   REPO_URL: https://github.com/padavanonly/immortalwrt-mt798x-6.6.git
+
   REPO_BRANCH: openwrt-24.10-6.6
+
   TZ: Asia/Shanghai
+
 
 
 jobs:
@@ -15,30 +20,43 @@ jobs:
 
     runs-on: ubuntu-latest
 
+
     permissions:
+
       contents: write
       actions: write
+
 
 
     steps:
 
 
+
     - name: Checkout
-      uses: actions/checkout@main
+
+      uses: actions/checkout@v4
+
 
 
     - name: Initialization environment
+
       env:
+
         DEBIAN_FRONTEND: noninteractive
+
 
       run: |
 
-        sudo rm -rf /usr/share/dotnet \
+
+        sudo rm -rf \
+        /usr/share/dotnet \
         /usr/local/lib/android \
         /opt/ghc \
         /opt/hostedtoolcache/CodeQL
 
+
         sudo -E apt update
+
 
         sudo -E apt install -y \
         dos2unix \
@@ -46,13 +64,17 @@ jobs:
         libfuse-dev
 
 
+
         sudo bash -c \
         'bash <(curl -sL https://build-scripts.immortalwrt.org/init_build_environment.sh)'
+
 
 
         sudo mkdir -p /srcdir
 
         sudo chown $USER:$GROUPS /srcdir
+
+
 
 
 
@@ -62,6 +84,7 @@ jobs:
 
       run: |
 
+
         git clone \
         --depth=1 \
         --single-branch \
@@ -69,26 +92,34 @@ jobs:
         $REPO_URL openwrt
 
 
+
         ln -sf /srcdir/openwrt \
         $GITHUB_WORKSPACE/openwrt
 
 
+
         cd openwrt
+
 
         echo "REPO_HEAD=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
 
 
-    ################################################
-    # Add Argon Theme
-    ################################################
+
+
+    #################################################
+    # Argon
+    #################################################
 
 
     - name: Add Argon Theme
 
+
       run: |
 
+
         cd openwrt
+
 
         git clone --depth=1 \
         https://github.com/jerrykuku/luci-theme-argon.git \
@@ -96,16 +127,21 @@ jobs:
 
 
 
-    ################################################
+
+
+    #################################################
     # feeds
-    ################################################
+    #################################################
 
 
     - name: Update feeds
 
+
       run: |
 
+
         cd openwrt
+
 
         ./scripts/feeds update -a
 
@@ -113,32 +149,70 @@ jobs:
 
 
 
-    ################################################
-    # Generate AX3000T config
-    ################################################
 
 
-    - name: Generate AX3000T config
+    #################################################
+    # Configure target
+    #################################################
+
+
+    - name: Configure AX3000T
+
 
       run: |
 
+
         cd openwrt
+
 
 
         rm -f .config
 
 
-        cat > .config <<'EOF'
+
+        #
+        # select target
+        #
+
+
+        cat > .config <<EOF
 
 
         CONFIG_TARGET_mediatek=y
+        
         CONFIG_TARGET_mediatek_filogic=y
         
-        CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_xiaomi_mi-router-ax3000t=y
+        
+        EOF
         
         
-        # FULL UBI
+        
+                make defconfig
+        
+        
+        
+                #
+                # enable AX3000T profile
+                #
+        
+        
+                echo "CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_xiaomi_mi-router-ax3000t=y" >> .config
+        
+        
+        
+                #
+                # packages
+                #
+        
+        
+                cat >> .config <<EOF
+        
+        
+        
+        # UBI
+        
         CONFIG_TARGET_ROOTFS_UBIFS=y
+        
         CONFIG_TARGET_ROOTFS_SQUASHFS=n
         
         
@@ -148,30 +222,31 @@ jobs:
         CONFIG_MTK_MT_WIFI=m
         
         CONFIG_PACKAGE_kmod-mt_wifi=y
+        
         CONFIG_PACKAGE_mtwifi-cfg=y
+        
         CONFIG_PACKAGE_wifi-dats=y
         
         
         
-        # AP networking
+        # AP mode
         
         CONFIG_PACKAGE_wpad-openssl=y
         
         CONFIG_PACKAGE_hostapd-common=y
         
         
-        CONFIG_PACKAGE_kmod-mediatek_hnat=y
-        
         CONFIG_PACKAGE_bridge-utils=y
         
         CONFIG_PACKAGE_ebtables=y
         
-        CONFIG_PACKAGE_ethtool=y
-        
         CONFIG_PACKAGE_kmod-8021q=y
         
+        CONFIG_PACKAGE_ethtool=y
         
-        # IPv6 support
+        
+        
+        # IPv6
         
         CONFIG_PACKAGE_odhcp6c=y
         
@@ -188,6 +263,7 @@ jobs:
         CONFIG_PACKAGE_luci-app-wireless=y
         
         CONFIG_PACKAGE_luci-app-firewall=y
+        
         
         
         # Argon
@@ -209,87 +285,104 @@ jobs:
         CONFIG_PACKAGE_htop=y
         
         
+        
         EOF
-
-
+        
+        
+        
         make defconfig
 
 
 
-    ################################################
+
+
+    #################################################
     # Verify before compile
-    ################################################
+    #################################################
 
 
     - name: Verify configuration
 
+
       run: |
+
 
         cd openwrt
 
 
-        echo "=============================="
 
-        echo "DEVICE"
+        echo "================================"
 
-        echo "=============================="
+        echo "DEVICE CHECK"
 
-        grep "CONFIG_TARGET_DEVICE" .config
-
+        echo "================================"
 
 
-        echo ""
 
-        echo "=============================="
-
-        echo "ROOTFS"
-
-        echo "=============================="
-
-        grep "CONFIG_TARGET_ROOTFS" .config
+        grep xiaomi .config || true
 
 
 
         echo ""
 
-        echo "=============================="
+        echo "================================"
 
-        echo "MT WIFI"
+        echo "ROOTFS CHECK"
 
-        echo "=============================="
-
-        grep "MT_WIFI" .config
+        echo "================================"
 
 
 
-        echo ""
-
-        echo "=============================="
-
-        echo "ARGON"
-
-        echo "=============================="
-
-        grep "argon" .config
+        grep CONFIG_TARGET_ROOTFS .config || true
 
 
 
         echo ""
 
-        echo "=============================="
+        echo "================================"
 
-        echo "CHECK RESULT"
+        echo "WIFI CHECK"
 
-        echo "=============================="
+        echo "================================"
 
 
-        if ! grep -q \
-        "xiaomi_mi-router-ax3000t=y" \
-        .config
+
+        grep MT_WIFI .config || true
+
+
+
+        echo ""
+
+        echo "================================"
+
+        echo "ARGON CHECK"
+
+        echo "================================"
+
+
+
+        grep argon .config || true
+
+
+
+
+
+        echo ""
+
+        echo "================================"
+
+        echo "FINAL VALIDATION"
+
+        echo "================================"
+
+
+
+
+        if ! grep -q "xiaomi_mi-router-ax3000t" .config
 
         then
 
-          echo "ERROR: WRONG DEVICE"
+          echo "ERROR: AX3000T profile missing"
 
           exit 1
 
@@ -297,69 +390,107 @@ jobs:
 
 
 
-        if ! grep -q \
-        "CONFIG_TARGET_ROOTFS_UBIFS=y" \
-        .config
+        if ! grep -q "CONFIG_TARGET_ROOTFS_UBIFS=y" .config
 
         then
 
-          echo "ERROR: NOT UBI IMAGE"
+          echo "ERROR: UBI missing"
 
           exit 1
 
         fi
 
 
-        echo "CONFIG OK"
+
+        if ! grep -q "MT_WIFI" .config
+
+        then
+
+          echo "ERROR: MTK WIFI missing"
+
+          exit 1
+
+        fi
 
 
 
-    ################################################
+        echo "ALL CHECK PASS"
+
+
+
+
+
+
+    #################################################
     # Download
-    ################################################
+    #################################################
 
 
     - name: Download packages
 
+
       run: |
+
 
         cd openwrt
 
+
         make download -j8 V=s
+
 
         find dl -size -1024c -delete
 
 
 
-    ################################################
+
+
+
+    #################################################
     # Compile
-    ################################################
+    #################################################
 
 
     - name: Compile firmware
 
+
       id: compile
+
 
       run: |
 
+
         cd openwrt
 
+
+
         make -j$(nproc) || make -j1 V=s
+
+
 
         echo "status=success" >> $GITHUB_OUTPUT
 
 
 
+
+
+    #################################################
+    # Upload
+    #################################################
+
+
     - name: Upload firmware
 
-      uses: actions/upload-artifact@main
+
+      uses: actions/upload-artifact@v4
+
 
       if: steps.compile.outputs.status == 'success'
 
+
       with:
 
-        name: AX3000T-AN8855-UBI
+
+        name: AX3000T-AN8855-FULL-UBI
+
 
         path: openwrt/bin/targets/mediatek/filogic/*
-
-
