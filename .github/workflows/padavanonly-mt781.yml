@@ -24,6 +24,14 @@ jobs:
     - name: Checkout
       uses: actions/checkout@main
 
+    - name: Verify required files
+      run: |
+        if [ ! -f "$GITHUB_WORKSPACE/.github/workflows/mt7981-ax3000.config" ]; then
+          echo "::error::找不到 $GITHUB_WORKSPACE/.github/workflows/mt7981-ax3000.config。请确认该文件已提交到仓库的 .github/workflows/ 目录下，文件名必须精确为 mt7981-ax3000.config"
+          exit 1
+        fi
+        echo "OK: 找到 mt7981-ax3000.config"
+
     - name: Initialization environment
       env:
         DEBIAN_FRONTEND: noninteractive
@@ -76,14 +84,18 @@ jobs:
     - name: Load custom config
       run: |
         cd openwrt
-        cp -f $GITHUB_WORKSPACE/mt7981-ax3000.config .config
+        cp -f $GITHUB_WORKSPACE/.github/workflows/mt7981-ax3000.config .config
         sed -i 's/_mediatek_mt7981/_mediatek_filogic/g' .config
-        # AP 无线桥接场景所需的基础网络模块
+        # 基础防火墙/网络模块（AP 场景用得到，也为以后切回完整路由模式保留）
         echo "CONFIG_PACKAGE_kmod-nft-compat=y" >> .config
         echo "CONFIG_PACKAGE_kmod-nft-fib=y" >> .config
         echo "CONFIG_PACKAGE_kmod-nft-socket=y" >> .config
         echo "CONFIG_PACKAGE_kmod-netlink-diag=y" >> .config
         echo "CONFIG_PACKAGE_kmod-nft-core=y" >> .config
+        # 路由/NAT 相关模块：AP 模式下用不到，但保留以便以后当路由器用
+        echo "CONFIG_PACKAGE_kmod-nft-nat=y" >> .config
+        echo "CONFIG_PACKAGE_kmod-nft-offload=y" >> .config
+        echo "CONFIG_PACKAGE_kmod-nft-tproxy=y" >> .config
         # Argon 主题
         echo "CONFIG_PACKAGE_luci-theme-argon=y" >> .config
         echo "CONFIG_PACKAGE_luci-app-argon-config=y" >> .config
@@ -142,7 +154,7 @@ jobs:
 
     - name: Organize files
       id: organize
-      if: (!cancelled())
+      if: steps.compile.outputs.status == 'success' && !cancelled()
       run: |
         cd openwrt/bin/targets/*/*
         rm -rf packages
