@@ -131,86 +131,85 @@ jobs:
         cat > .config <<'EOF'
 
 
-CONFIG_TARGET_mediatek=y
-CONFIG_TARGET_mediatek_filogic=y
-
-CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_xiaomi_mi-router-ax3000t=y
-
-
-# FULL UBI
-CONFIG_TARGET_ROOTFS_UBIFS=y
-CONFIG_TARGET_ROOTFS_SQUASHFS=n
-
-
-
-# MTK proprietary WIFI
-
-CONFIG_MTK_MT_WIFI=m
-
-CONFIG_PACKAGE_kmod-mt_wifi=y
-CONFIG_PACKAGE_mtwifi-cfg=y
-CONFIG_PACKAGE_wifi-dats=y
-
-
-
-# AP networking
-
-CONFIG_PACKAGE_wpad-openssl=y
-
-CONFIG_PACKAGE_hostapd-common=y
-
-
-CONFIG_PACKAGE_kmod-mediatek_hnat=y
-
-CONFIG_PACKAGE_bridge-utils=y
-
-CONFIG_PACKAGE_ebtables=y
-
-CONFIG_PACKAGE_ethtool=y
-
-CONFIG_PACKAGE_kmod-8021q=y
-
-
-# IPv6 support
-
-CONFIG_PACKAGE_odhcp6c=y
-
-CONFIG_PACKAGE_odhcpd-ipv6only=y
-
-
-
-# LuCI
-
-CONFIG_PACKAGE_luci=y
-
-CONFIG_PACKAGE_luci-compat=y
-
-CONFIG_PACKAGE_luci-app-wireless=y
-
-CONFIG_PACKAGE_luci-app-firewall=y
-
-
-# Argon
-
-CONFIG_PACKAGE_luci-theme-argon=y
-
-CONFIG_PACKAGE_luci-app-argon-config=y
-
-
-
-# tools
-
-CONFIG_PACKAGE_iwinfo=y
-
-CONFIG_PACKAGE_iw=y
-
-CONFIG_PACKAGE_tcpdump=y
-
-CONFIG_PACKAGE_htop=y
-
-
-EOF
-
+        CONFIG_TARGET_mediatek=y
+        CONFIG_TARGET_mediatek_filogic=y
+        
+        CONFIG_TARGET_DEVICE_mediatek_filogic_DEVICE_xiaomi_mi-router-ax3000t=y
+        
+        
+        # FULL UBI
+        CONFIG_TARGET_ROOTFS_UBIFS=y
+        CONFIG_TARGET_ROOTFS_SQUASHFS=n
+        
+        
+        
+        # MTK proprietary WIFI
+        
+        CONFIG_MTK_MT_WIFI=m
+        
+        CONFIG_PACKAGE_kmod-mt_wifi=y
+        CONFIG_PACKAGE_mtwifi-cfg=y
+        CONFIG_PACKAGE_wifi-dats=y
+        
+        
+        
+        # AP networking
+        
+        CONFIG_PACKAGE_wpad-openssl=y
+        
+        CONFIG_PACKAGE_hostapd-common=y
+        
+        
+        CONFIG_PACKAGE_kmod-mediatek_hnat=y
+        
+        CONFIG_PACKAGE_bridge-utils=y
+        
+        CONFIG_PACKAGE_ebtables=y
+        
+        CONFIG_PACKAGE_ethtool=y
+        
+        CONFIG_PACKAGE_kmod-8021q=y
+        
+        
+        # IPv6 support
+        
+        CONFIG_PACKAGE_odhcp6c=y
+        
+        CONFIG_PACKAGE_odhcpd-ipv6only=y
+        
+        
+        
+        # LuCI
+        
+        CONFIG_PACKAGE_luci=y
+        
+        CONFIG_PACKAGE_luci-compat=y
+        
+        CONFIG_PACKAGE_luci-app-wireless=y
+        
+        CONFIG_PACKAGE_luci-app-firewall=y
+        
+        
+        # Argon
+        
+        CONFIG_PACKAGE_luci-theme-argon=y
+        
+        CONFIG_PACKAGE_luci-app-argon-config=y
+        
+        
+        
+        # tools
+        
+        CONFIG_PACKAGE_iwinfo=y
+        
+        CONFIG_PACKAGE_iw=y
+        
+        CONFIG_PACKAGE_tcpdump=y
+        
+        CONFIG_PACKAGE_htop=y
+        
+        
+        EOF
 
 
         make defconfig
